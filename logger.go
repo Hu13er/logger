@@ -20,6 +20,8 @@ const (
 type LogWriter interface {
 	Write(buffer []byte, level int) (n int, err error)
 	SetHeader(header []byte)
+
+	Copy() LogWriter
 }
 
 type LoggerIntegrate struct {
@@ -44,6 +46,14 @@ func (li *LoggerIntegrate) Write(buffer []byte, level int) (n int, err error) {
 		}
 	}
 	return
+}
+
+func (li *LoggerIntegrate) Copy() LogWriter {
+	newAry := make([]LogWriter, len(li.loggers))
+	for k, v := range li.loggers {
+		newAry[k] = v.Copy()
+	}
+	return NewLoggerIntergrate(newAry...)
 }
 
 func (li *LoggerIntegrate) SetHeader(header []byte) {
@@ -103,6 +113,22 @@ func (l *Logger) SetHeader(header []byte) {
 	l.header = header
 }
 
+func (l *Logger) Copy() LogWriter {
+	nl := *l
+
+	nprefix := map[int]string{}
+	for k, v := range l.prefix {
+		nprefix[k] = v
+	}
+
+	nheader := make([]byte, len(l.header))
+	for k, v := range l.header {
+		nheader[k] = v
+	}
+
+	return &nl
+}
+
 type writeStream struct {
 	logger LogWriter
 	level  int
@@ -131,6 +157,12 @@ func (lf *LogFmt) Write(buffer []byte, level int) (n int, err error) {
 
 func (lf *LogFmt) SetHeader(header []byte) {
 	lf.Logger.SetHeader(header)
+}
+
+func (lf *LogFmt) Copy() LogWriter {
+	nlf := *lf
+	nlf.Logger = nlf.Logger.Copy()
+	return &nlf
 }
 
 func (lf *LogFmt) printf(level int, format string, args ...interface{}) (n int, err error) {
@@ -221,11 +253,11 @@ func (lf *LogFmt) Panicln(args ...interface{}) (int, error) {
 }
 
 func (lf *LogFmt) WithHeader(args ...interface{}) *LogFmt {
-	out := *lf
+	out := lf.Copy().(*LogFmt)
 	stream := new(bytes.Buffer)
 	fmt.Fprint(stream, args...)
 	out.SetHeader(stream.Bytes())
-	return &out
+	return out
 }
 
 func (lf *LogFmt) WithHeaderln(args ...interface{}) *LogFmt {
@@ -234,9 +266,9 @@ func (lf *LogFmt) WithHeaderln(args ...interface{}) *LogFmt {
 }
 
 func (lf *LogFmt) WithHeaderf(format string, args ...interface{}) *LogFmt {
-	out := *lf
+	out := lf.Copy().(*LogFmt)
 	stream := new(bytes.Buffer)
 	fmt.Fprintf(stream, format, args...)
 	out.SetHeader(stream.Bytes())
-	return &out
+	return out
 }
