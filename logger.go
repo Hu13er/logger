@@ -75,12 +75,18 @@ func New(writer io.Writer) *Logger {
 }
 
 func (l *Logger) SetPrefix(prefix map[int]string) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	if prefix != nil {
 		l.prefix = prefix
 	}
 }
 
 func (l *Logger) SetLevelPrefix(lvl int, prefix string) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	l.prefix[lvl] = prefix
 }
 
@@ -114,7 +120,11 @@ func (l *Logger) SetHeader(header []byte) {
 }
 
 func (l *Logger) Copy() LogWriter {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	nl := *l
+	nl.mutex.Unlock()
 
 	nprefix := map[int]string{}
 	for k, v := range l.prefix {
