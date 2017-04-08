@@ -6,7 +6,7 @@ import (
 	telegram "gopkg.in/telegram-bot-api.v4"
 )
 
-type telegSteam struct {
+type TelegSteam struct {
 	bot    *telegram.BotAPI
 	chatID int64
 	mutex  sync.Mutex
@@ -14,14 +14,14 @@ type telegSteam struct {
 	cancel chan struct{}
 }
 
-func newTelegSteam(token string, chatID int64, chanSize int) (*telegSteam, error) {
+func NewTelegSteam(token string, chatID int64, chanSize int) (*TelegSteam, error) {
 	bot, err := telegram.NewBotAPI(token)
-	tele := &telegSteam{bot: bot, queue: make(chan string, chanSize), chatID: chatID, mutex: sync.Mutex{}, cancel: make(chan struct{})}
+	tele := &TelegSteam{bot: bot, queue: make(chan string, chanSize), chatID: chatID, mutex: sync.Mutex{}, cancel: make(chan struct{})}
 	go tele.flusher()
 	return tele, err
 }
 
-func (t *telegSteam) Write(buf []byte) (n int, err error) {
+func (t *TelegSteam) Write(buf []byte) (n int, err error) {
 
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
@@ -30,12 +30,12 @@ func (t *telegSteam) Write(buf []byte) (n int, err error) {
 	return len(buf), nil
 }
 
-func (t *telegSteam) Cancel() {
+func (t *TelegSteam) Cancel() {
 	t.cancel <- struct{}{}
 	close(t.queue)
 }
 
-func (t *telegSteam) flusher() {
+func (t *TelegSteam) flusher() {
 	for {
 		select {
 		case <-t.cancel:
