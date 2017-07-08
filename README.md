@@ -42,7 +42,7 @@ func init() {
 	telegramLog := logger.New(telegramStream)
 	telegramLog.SetPrefix(prefix)
 
-	inti := logger.NewLoggerIntergrate(stdlog, telegramLog)
+	inti := logger.NewLoggerIntegrate(stdlog, telegramLog)
 	log = &logger.LogFmt{Logger: inti}
 }
 

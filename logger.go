@@ -28,7 +28,7 @@ type LoggerIntegrate struct {
 	loggers []LogWriter
 }
 
-func NewLoggerIntergrate(loggers ...LogWriter) *LoggerIntegrate {
+func NewLoggerIntegrate(loggers ...LogWriter) *LoggerIntegrate {
 	ary := make([]LogWriter, 0)
 	ary = append(ary, loggers...)
 	return &LoggerIntegrate{ary}
@@ -53,7 +53,7 @@ func (li *LoggerIntegrate) Copy() LogWriter {
 	for k, v := range li.loggers {
 		newAry[k] = v.Copy()
 	}
-	return NewLoggerIntergrate(newAry...)
+	return NewLoggerIntegrate(newAry...)
 }
 
 func (li *LoggerIntegrate) SetHeader(header []byte) {
